@@ -15,7 +15,7 @@ const timeout = 30 * 1e3; // 30 seconds in ms.
             '--enable-blink-features=InterestCohortAPI',
             '--enable-features="FederatedLearningOfCohorts:update_interval/10s/minimum_history_domain_size_required/1,FlocIdSortingLshBasedComputation,InterestCohortFeaturePolicy"',
             '--js-flags="--async-stack-traces --stack-trace-limit 32"',
-            // '--show-autofill-signatures'
+            '--show-autofill-signatures'
         ],
         devtools: true,
     });
@@ -23,10 +23,14 @@ const timeout = 30 * 1e3; // 30 seconds in ms.
     const ctx = await browser.createIncognitoBrowserContext();
 
     ctx.on('targetcreated', async target => {
-        const cdpClient = await target.createCDPSession();
-        await cdpClient.send('Target.setAutoAttach', {autoAttach: true, waitForDebuggerOnStart: true});
-        await cdpClient.send('Runtime.enable');
-        await cdpClient.send('Runtime.runIfWaitingForDebugger');
+        try {
+            const cdpClient = await target.createCDPSession();
+            await cdpClient.send('Target.setAutoAttach', {autoAttach: true, waitForDebuggerOnStart: true});
+            await cdpClient.send('Runtime.enable');
+            await cdpClient.send('Runtime.runIfWaitingForDebugger');
+        } catch (err) {
+            console.error(err);
+        }
     });
 
     const page = await ctx.newPage();
@@ -40,7 +44,7 @@ const timeout = 30 * 1e3; // 30 seconds in ms.
 
     for (const page of await ctx.pages()) {
         for (const frame of page.frames()) {
-            await frame.evaluate(() => '');
+            await frame.evaluate(async () => 1);
         }
     }
 
